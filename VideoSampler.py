@@ -26,7 +26,6 @@ def video_sample(source: Path,
             if directories:
                 filename = filename / source.stem
             filename = filename / f"{source.stem}{i:05}.png"
-            print(f"Writing frame: {filename}")
             cv2.imwrite(filename=filename.__str__(), img=frame)
             i += 1
         if not success:
