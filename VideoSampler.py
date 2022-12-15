@@ -4,7 +4,7 @@ from tkinter.filedialog import askdirectory
 from tkinter import simpledialog
 import argparse
 import cv2
-from multiprocessing import Pool, Process
+from multiprocessing.pool import ThreadPool
 
 VIDEO_FILE_TYPES = ["AVI", "MP4", "MOV"]
 
@@ -26,8 +26,9 @@ def video_sample(source: Path,
             if directories:
                 filename = filename / source.stem
             filename = filename / f"{source.stem}{i:05}.png"
-            cv2.imwrite(filename=filename.__str__(), img=frame)
-            i += 1
+            if frame is not None:
+                cv2.imwrite(filename=filename.__str__(), img=frame)
+                i += 1
         if not success:
             return
         time_covered += frame_period
@@ -58,7 +59,7 @@ def parse_opts() -> argparse.Namespace:
     parser.add_argument("-s", "--source", type=Path, default=Path(__file__).parent / "data", help="Path to the video files")
     parser.add_argument("-o", "--output", type=Path, default=Path(__file__).parent / "output", help="Path of the output image files")
     parser.add_argument("-r", "--sampling_rate", type=int, default=5, help="Number of frames recorded every second")
-    parser.add_argument("-w", "--workers", type=int, default=1, help="Number of workers")
+    parser.add_argument("-w", "--workers", type=int, default=3, help="Number of workers")
     parser.add_argument("-d", "--directories", action="store_true", help="Arrange the output images in subfolders")
     parser.add_argument("-g", "--gui", action="store_true", help="Use GUI queries")
     return parser.parse_args()
@@ -70,10 +71,11 @@ if __name__ == "__main__":
         args = operate_gui(opts=args)
     videos = (p.resolve() for p in Path(args.source).rglob("*") if p.suffix[1:].upper() in VIDEO_FILE_TYPES)
     Path(args.output).mkdir(exist_ok=True)
+    configs = []
     for video in videos:
         if args.directories:
             (Path(args.output) / video.stem).mkdir(exist_ok=True)
             print(f"Creating new folder for storing {video.stem} frames")
-        video_sample(source=video, output=args.output, directories=False)
-    # processes = []
-    # pool = Pool(processes=args.workers)
+        configs.append((video, args.output, args.sampling_rate, args.directories))
+    with ThreadPool(processes=args.workers) as pool:
+        pool.starmap(video_sample, configs)
