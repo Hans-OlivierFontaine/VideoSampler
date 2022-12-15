@@ -1,9 +1,14 @@
 # VideoSampler
 A complete video sampler used to split video files into subset of images according to a sampling frequency
 ## Installation
-Install the various conda libraries in the environment file using:
+Install the various conda libraries in the environment file using:    
+Conda format:
 ````
 conda env create -f environment.yml
+````
+Pip format:
+````
+conda create --name <env> --file requirements.txt
 ````
 ## Usage
 Run:
