@@ -20,7 +20,7 @@ def video_sample(source: Path,
     assert 1 / frame_period > sampling_rate, f"FPS({1 / frame_period}) should be higher than sampling rate({sampling_rate})"
     i = 0
     while True:
-        flag, frame = cap.read()
+        success, frame = cap.read()
         if time_covered >= i * sampling_period:
             filename = output
             if directories:
@@ -29,7 +29,7 @@ def video_sample(source: Path,
             print(f"Writing frame: {filename}")
             cv2.imwrite(filename=filename.__str__(), img=frame)
             i += 1
-        if flag:
+        if not success:
             return
         time_covered += frame_period
 
